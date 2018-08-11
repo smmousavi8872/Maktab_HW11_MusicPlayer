@@ -1,10 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.RecyclerView
-  android:id="@+id/music_menu_recycler_view"
+
+<RelativeLayout
   xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
   android:layout_width="match_parent"
-  android:layout_height="match_parent"
+  android:layout_height="wrap_content"
   tools:context=".mvc.controller.fragments.MusicMenuFragment">
 
-</android.support.v7.widget.RecyclerView>
+  <FrameLayout
+    android:id="@+id/uppder_layout"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"/>
+
+
+  <android.support.v7.widget.RecyclerView
+    android:id="@+id/music_menu_recycler_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_above="@id/lower_layout"
+    android:layout_below="@id/uppder_layout">
+
+
+  </android.support.v7.widget.RecyclerView>
+
+
+  <FrameLayout
+    android:id="@+id/lower_layout"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:layout_alignParentBottom="true">
+
+  </FrameLayout>
+
+</RelativeLayout>

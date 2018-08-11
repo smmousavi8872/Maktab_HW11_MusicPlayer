@@ -44,4 +44,5 @@ public class Song {
   public void setAlbum(String album) {
     this.album = album;
   }
+
 }
