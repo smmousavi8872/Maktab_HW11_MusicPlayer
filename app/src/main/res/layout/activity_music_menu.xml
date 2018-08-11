@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="@color/dark_background_color"
+  tools:context=".mvc.controller.activities.MusicMenuActivity">
+
+
+  <android.support.design.widget.TabLayout
+    android:id="@+id/music_menu_tablayout"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:backgroundTint="@color/dark_background_color"
+    android:paddingEnd="10dp"
+    android:paddingStart="10dp"
+    app:tabIndicatorColor="#6253f7"
+    app:tabSelectedTextColor="#6253f7"
+    app:tabTextColor="#eee">
+
+    <android.support.design.widget.TabItem
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Left"/>
+
+    <android.support.design.widget.TabItem
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Center"/>
+
+    <android.support.design.widget.TabItem
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Right"/>
+
+    <android.support.design.widget.TabItem
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="Center"/>
+
+  </android.support.design.widget.TabLayout>
+
+  <android.support.v4.view.ViewPager
+    android:id="@+id/music_menu_view_pager"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+  </android.support.v4.view.ViewPager>
+
+  <RelativeLayout
+    android:id="@+id/current_playing_music_layout"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:layout_alignParentBottom="true"
+    android:background="#424242">
+
+    <ImageView
+      android:id="@+id/current_playing_music_Image"
+      android:layout_width="40dp"
+      android:layout_height="40dp"
+      android:layout_centerVertical="true"
+      android:layout_marginEnd="10dp"
+      android:layout_marginStart="10dp"
+      android:background="#eee"/>
+
+    <TextView
+      android:id="@+id/current_playing_music_name"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="5dp"
+      android:layout_toEndOf="@+id/current_playing_music_Image"
+      android:layout_toStartOf="@id/current_playing_music_panel"
+      android:text="More Than Friends"
+      android:textColor="#ccc"
+      android:textSize="16dp"
+      android:textStyle="bold"/>
+
+    <TextView
+      android:id="@+id/current_playing_music_artist"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_below="@id/current_playing_music_name"
+      android:layout_toEndOf="@+id/current_playing_music_Image"
+      android:text="Unknown"
+      android:textColor="#999"
+      android:textSize="12dp"/>
+
+    <LinearLayout
+      android:id="@+id/current_playing_music_panel"
+      android:layout_width="wrap_content"
+      android:layout_height="match_parent"
+      android:layout_alignParentEnd="true"
+      android:layout_centerVertical="true"
+      android:layout_marginEnd="15dp"
+      android:layout_marginStart="10dp"
+      android:gravity="center"
+      android:orientation="horizontal">
+
+      <Button
+        android:id="@+id/current_playing_music_prev"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:background="@drawable/ic_prev_song"
+        android:padding="100dp"/>
+
+      <Button
+        android:id="@+id/current_playing_music_play"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:layout_marginEnd="25dp"
+        android:layout_marginStart="25dp"
+        android:background="@drawable/ic_play_button"/>
+
+      <Button
+        android:id="@+id/current_playing_music_next"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:background="@drawable/ic_next_song"/>
+
+
+    </LinearLayout>
+
+
+  </RelativeLayout>
+
+
+</RelativeLayout>
