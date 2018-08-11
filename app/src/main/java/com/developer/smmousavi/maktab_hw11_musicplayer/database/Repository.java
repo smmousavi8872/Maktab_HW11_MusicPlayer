@@ -51,6 +51,7 @@ public class Repository {
 
   public SongCursorWrapper getSongQuery(Uri musicUri, String whereClause, String[] whereArgs) {
     ContentResolver musicResolver = context.getContentResolver();
+    musicResolver.getPersistedUriPermissions();
     Cursor musicCursor = musicResolver.query(
       musicUri,
       null,
@@ -62,4 +63,6 @@ public class Repository {
     return new SongCursorWrapper(musicCursor);
 
   }// end of getSongQuery()
+
+
 }
