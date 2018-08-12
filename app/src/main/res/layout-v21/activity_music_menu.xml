@@ -13,10 +13,10 @@
     android:id="@+id/music_menu_tablayout"
     android:layout_width="match_parent"
     android:layout_height="50dp"
+    android:layout_marginEnd="15dp"
+    android:layout_marginStart="15dp"
     android:backgroundTint="@color/dark_background_color"
     app:tabIndicatorColor="#6253f7"
-    android:layout_marginStart="15dp"
-    android:layout_marginEnd="15dp"
     app:tabSelectedTextColor="#6253f7"
     app:tabTextColor="#eee">
 
@@ -46,8 +46,8 @@
     android:layout_width="match_parent"
     android:layout_height="0.1dp"
     android:layout_below="@+id/music_menu_tablayout"
-    android:layout_marginStart="15dp"
     android:layout_marginEnd="15dp"
+    android:layout_marginStart="15dp"
     android:background="#bbb"/>
 
 
@@ -59,27 +59,33 @@
     android:layout_gravity="bottom"
     android:background="@color/second_dark_background_color">
 
+    <Button
+      android:id="@+id/song_user_panel_btn"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:layout_toStartOf="@+id/user_panel_prev"
+      android:background="@drawable/song_user_panel_background"/>
+
     <ImageView
       android:id="@+id/current_playing_music_Image"
-      android:layout_width="40dp"
+      android:layout_width="38dp"
       android:layout_height="40dp"
       android:layout_centerVertical="true"
       android:layout_marginEnd="10dp"
       android:layout_marginStart="10dp"
-      android:background="#eee"
-      android:contentDescription="TODO"/>
+      android:background="#eee"/>
 
     <TextView
       android:id="@+id/current_playing_music_name"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_marginTop="5dp"
+      android:layout_marginTop="7dp"
       android:layout_toEndOf="@+id/current_playing_music_Image"
-      android:layout_toStartOf="@id/current_playing_music_panel"
-      android:text="More Than Friends"
+      android:layout_toStartOf="@id/user_panel_prev"
+      android:ellipsize="end"
+      android:maxLines="1"
       android:textColor="#ccc"
-      android:textSize="16dp"
-      android:textStyle="bold"/>
+      android:textSize="16dp"/>
 
     <TextView
       android:id="@+id/current_playing_music_artist"
@@ -91,40 +97,87 @@
       android:textColor="#999"
       android:textSize="12dp"/>
 
-    <LinearLayout
-      android:id="@+id/current_playing_music_panel"
-      android:layout_width="wrap_content"
-      android:layout_height="match_parent"
+
+    <RelativeLayout
+      android:id="@+id/user_panel_prev"
+      android:layout_width="30dp"
+      android:layout_height="30dp"
+      android:layout_centerVertical="true"
+      android:layout_marginStart="15dp"
+      android:layout_toStartOf="@+id/user_panel_play">
+
+      <Button
+        android:id="@+id/user_panel_prev_btn"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/other_button_background"/>
+
+      <ImageView
+        android:id="@+id/user_panel_prev_icon"
+        android:layout_width="17dp"
+        android:layout_height="17dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/ic_prev_song"/>
+    </RelativeLayout>
+
+
+    <RelativeLayout
+      android:id="@+id/user_panel_play"
+      android:layout_width="30dp"
+      android:layout_height="30dp"
+      android:layout_centerVertical="true"
+      android:layout_marginEnd="25dp"
+      android:layout_marginStart="25dp"
+      android:layout_toStartOf="@+id/user_panel_next">
+
+      <Button
+        android:id="@+id/user_panel_play_btn"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/other_button_background"
+        android:focusable="true"/>
+
+      <ImageView
+        android:id="@+id/user_panel_play_icon"
+        android:layout_width="17dp"
+        android:layout_height="17dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/ic_play_button"
+        android:focusable="true"/>
+    </RelativeLayout>
+
+
+    <RelativeLayout
+      android:id="@+id/user_panel_next"
+      android:layout_width="30dp"
+      android:layout_height="30dp"
       android:layout_alignParentEnd="true"
       android:layout_centerVertical="true"
-      android:layout_marginEnd="15dp"
-      android:layout_marginStart="10dp"
-      android:gravity="center"
-      android:orientation="horizontal">
+      android:layout_marginEnd="15dp">
 
       <Button
-        android:id="@+id/current_playing_music_prev"
-        android:layout_width="15dp"
-        android:layout_height="15dp"
-        android:background="@drawable/ic_prev_song"
-        android:padding="100dp"/>
+        android:id="@+id/user_panel_next_btn"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:background="@drawable/other_button_background"/>
 
-      <Button
-        android:id="@+id/current_playing_music_play"
-        android:layout_width="15dp"
-        android:layout_height="15dp"
-        android:layout_marginEnd="25dp"
-        android:layout_marginStart="25dp"
-        android:background="@drawable/ic_play_button"/>
-
-      <Button
-        android:id="@+id/current_playing_music_next"
-        android:layout_width="15dp"
-        android:layout_height="15dp"
+      <ImageView
+        android:id="@+id/user_panel_next_icon"
+        android:layout_width="17dp"
+        android:layout_height="17dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
         android:background="@drawable/ic_next_song"/>
-
-
-    </LinearLayout>
+    </RelativeLayout>
 
 
   </RelativeLayout>

@@ -11,7 +11,7 @@ public class Song {
   private long albumArtId;
   private long duration;
   private boolean playing;
-
+  private boolean favariot;
 
   public Song(long id) {
     this.id = id;
@@ -56,21 +56,26 @@ public class Song {
     return Uri;
   }
 
+
   public void setUri(String uri) {
     Uri = uri;
   }
+
 
   public long getDuration() {
     return duration;
   }
 
+
   public void setDuration(long duration) {
     this.duration = duration;
   }
 
+
   public boolean isPlaying() {
     return playing;
   }
+
 
   public void setPlaying(boolean playing) {
     this.playing = playing;
@@ -81,16 +86,29 @@ public class Song {
     return albumArtId;
   }
 
+
   public void setAlbumId(long albumArtId) {
     this.albumArtId = albumArtId;
   }
+
 
   public String getDisplayingName() {
     return displayingName;
   }
 
+
   public void setDisplayingName(String displayingName) {
     this.displayingName = displayingName;
+  }
+
+
+  public boolean isFavariot() {
+    return favariot;
+  }
+
+
+  public void setFavariot(boolean favariot) {
+    this.favariot = favariot;
   }
 
   public Song cloneSong() {

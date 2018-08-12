@@ -42,7 +42,6 @@
       android:ellipsize="end"
       android:maxLines="1"
       android:paddingTop="7dp"
-      android:text="INNA-Bad Boys Exclusive"
       android:textColor="#fff"
       android:textSize="16dp"/>
 
