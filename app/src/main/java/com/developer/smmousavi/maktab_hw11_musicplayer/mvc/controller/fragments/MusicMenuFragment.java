@@ -2,8 +2,8 @@ package com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments
 
 
 import android.Manifest;
-import android.content.ContentUris;
 import android.content.pm.PackageManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -13,10 +13,13 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.developer.smmousavi.maktab_hw11_musicplayer.R;
@@ -40,9 +43,12 @@ public class MusicMenuFragment extends Fragment {
 
   private RecyclerView recyclerView;
   private List<Song> songList;
+  private MediaPlayer mp;
+  public static String tabName;
 
 
-  public static MusicMenuFragment newInstance() {
+  public static MusicMenuFragment newInstance(String tabName) {
+    MusicMenuFragment.tabName = tabName;
 
     Bundle args = new Bundle();
 
@@ -72,9 +78,15 @@ public class MusicMenuFragment extends Fragment {
     View view = inflater.inflate(R.layout.fragment_music_menu, container, false);
     recyclerView = view.findViewById(R.id.music_menu_recycler_view);
     recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-    recyclerView.setAdapter(new MusicAdapter(songList));
+    setupAdapter();
+
     return view;
   }
+
+
+  private void setupAdapter() {
+    recyclerView.setAdapter(new MusicAdapter(songList));
+  }// end of setupAdapter()
 
 
   public List<Song> getSongListPermission() {
@@ -98,37 +110,80 @@ public class MusicMenuFragment extends Fragment {
   }
 
   private class MusicViewHolder extends RecyclerView.ViewHolder {
-    Song currentSong;
-    String title;
-    String artist;
-    ImageView songImageCard;
-    TextView titleView;
-    TextView artistView;
-    Uri sArtworkUri = Uri.parse("content://media/external/audio/albumart");
+    private Song selectedSong;
+    private Song lastPlayingSong;
+    private String songTitle;
+    private String artist;
+    private ImageView songImageCard;
+    private TextView titleView;
+    private TextView artistView;
+    private RelativeLayout songTrackLayout;
+    private Button songTrackBtn;
 
-    public MusicViewHolder(@NonNull View itemView) {
+    public MusicViewHolder(@NonNull final View itemView) {
       super(itemView);
       titleView = itemView.findViewById(R.id.music_track_name);
       artistView = itemView.findViewById(R.id.music_track_artist);
       songImageCard = itemView.findViewById(R.id.music_track_image);
-      songImageCard.bringToFront();
+      songTrackLayout = itemView.findViewById(R.id.music_track_layout);
+      songTrackBtn = itemView.findViewById(R.id.song_track_btn);
+
+
+      songTrackBtn.setOnClickListener(new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+          lastPlayingSong = selectedSong;
+
+          playInList();
+
+        }
+      });
+    }
+
+
+    private void playInList() {
+      if (mp == null) {
+        playAudio(selectedSong.getUri());
+        selectedSong.setPlaying(true);
+
+      } else if (lastPlayingSong.getId() == selectedSong.getId()) {
+        restAudio(mp, selectedSong.getUri());
+
+      } else if (lastPlayingSong.getId() != selectedSong.getId()) {
+        stopAudio(mp);
+        lastPlayingSong.setPlaying(false);
+        lastPlayingSong = selectedSong.cloneSong();
+        playAudio(selectedSong.getUri());
+        selectedSong.setPlaying(true);
+      }
     }
 
     public void onBinde(Song song) {
-      currentSong = song;
-      title = song.getTitle();
+      selectedSong = song;
+      songTitle = song.getDisplayingName();
       artist = song.getArtist();
-      titleView.setText(title);
+      titleView.setText(songTitle);
       artistView.setText(artist);
-      Uri img_url = ContentUris.withAppendedId(sArtworkUri, song.getId());
-      setSongCover(img_url);
+
+      String albumArtId = Repository.getInstance(getActivity()).getSongImgUri(song.getAlbumId());
+      Log.i("TAG9", albumArtId + "");
+      if (albumArtId == null) {
+        albumArtId = "";
+      }
+
+      Uri imgUri = Uri.parse(albumArtId);
+      setSongCover(imgUri);
 
     }
 
     private void setSongCover(Uri img_url) {
       if (!img_url.equals("")) {
-        Picasso.get().load(img_url).placeholder(R.drawable.music_background)// Place holder image from drawable folder
-          .error(R.drawable.music_background).resize(52, 55).into(songImageCard);
+        Picasso.get()
+          .load(img_url)
+          .placeholder(R.drawable.music_background)// Place holder image from drawable folder
+          .error(R.drawable.music_background)
+          .resize(52, 55)
+          .into(songImageCard);
       }
     }
   }
@@ -160,6 +215,45 @@ public class MusicMenuFragment extends Fragment {
     @Override
     public int getItemCount() {
       return songs.size();
+    }
+  }
+
+  public void playAudio(String path) {
+    try {
+      mp = new MediaPlayer();
+      mp.setDataSource(path);
+      mp.prepare();
+      mp.start();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+
+  public void pauseAudio(MediaPlayer mp) {
+    try {
+      mp.pause();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+
+  public void restAudio(MediaPlayer mp, String path) {
+    try {
+      mp.reset();
+      playAudio(path);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+  }
+
+
+  public void stopAudio(MediaPlayer mp) {
+    try {
+      mp.stop();
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 

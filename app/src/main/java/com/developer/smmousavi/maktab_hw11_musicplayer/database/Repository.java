@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.provider.MediaStore;
 
 import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.model.Song;
 
@@ -47,6 +48,24 @@ public class Repository {
     }
     return songs;
   }// end of getSongList()
+
+
+  public String getSongImgUri(long albumId) {
+    ContentResolver musicResolver = context.getContentResolver();
+    Cursor cursor = musicResolver.query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+      new String[]{MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART},
+      MediaStore.Audio.Albums._ID + " = ? ",
+      new String[]{String.valueOf(albumId)}, null);
+
+    String path = null;
+    assert cursor != null;
+    if (cursor.moveToFirst()) {
+      path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+    }
+
+    cursor.close();
+    return path;
+  } // end of getSongImgUri()
 
 
   public SongCursorWrapper getSongQuery(Uri musicUri, String whereClause, String[] whereArgs) {

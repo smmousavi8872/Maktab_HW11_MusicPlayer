@@ -28,6 +28,10 @@ public class MusicMenuActivity extends AppCompatActivity {
     return intent;
   }
 
+  public static final String FATARIOT_TAB_NAME = "FAVARIOT";
+  public static final String TRACK_TAB_NAME = "TRACK";
+  public static final String ALBUM_TAB_NAME = "ALBUM";
+  public static final String ARTIST_TAB_NAME = "ARTIST";
 
   private TabLayout tabLayout;
   private ViewPager viewPager;
@@ -41,9 +45,13 @@ public class MusicMenuActivity extends AppCompatActivity {
   List<Fragment> musicMenuFragments;
   List<String> musicMenuTitles;
 
+  private Fragment favariots;
+  private Fragment tracks;
+  private Fragment albums;
+  private Fragment artists;
+
 
   @Override
-
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_music_menu);
@@ -61,10 +69,15 @@ public class MusicMenuActivity extends AppCompatActivity {
     currentPlayingMusicNextBtn = findViewById(R.id.current_playing_music_next);
     currentPlayingMusicPrevBtn = findViewById(R.id.current_playing_music_prev);
 
-    addFragment(MusicMenuFragment.newInstance(), "FAVARIOT");
-    addFragment(MusicMenuFragment.newInstance(), "TRACKS");
-    addFragment(MusicMenuFragment.newInstance(), "ALBUMS");
-    addFragment(MusicMenuFragment.newInstance(), "ARTISTS");
+    favariots = MusicMenuFragment.newInstance(FATARIOT_TAB_NAME);
+    tracks = MusicMenuFragment.newInstance(TRACK_TAB_NAME);
+    albums = MusicMenuFragment.newInstance(ALBUM_TAB_NAME);
+    artists = MusicMenuFragment.newInstance(ARTIST_TAB_NAME);
+
+    addFragment(favariots, FATARIOT_TAB_NAME);
+    addFragment(tracks, TRACK_TAB_NAME);
+    addFragment(albums, ALBUM_TAB_NAME);
+    addFragment(artists, ARTIST_TAB_NAME);
 
     viewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
       @Override

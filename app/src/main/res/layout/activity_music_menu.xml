@@ -17,8 +17,8 @@
     android:backgroundTint="@color/dark_background_color"
     android:paddingEnd="10dp"
     android:paddingStart="10dp"
-    app:tabIndicatorColor="#6253f7"
-    app:tabSelectedTextColor="#6253f7"
+    app:tabIndicatorColor="@color/general_purple_color"
+    app:tabSelectedTextColor="@color/general_purple_color"
     app:tabTextColor="#eee"
     tools:targetApi="lollipop">
 
