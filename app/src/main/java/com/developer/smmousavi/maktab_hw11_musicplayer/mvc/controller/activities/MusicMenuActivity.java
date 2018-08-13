@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Button;
 
 import com.developer.smmousavi.maktab_hw11_musicplayer.R;
 import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicMenuFragment;
@@ -23,9 +24,12 @@ public class MusicMenuActivity extends AppCompatActivity {
 
   private TabLayout tabLayout;
   private ViewPager viewPager;
+  private Button currentSongUserPanelBtn;
 
-  List<Fragment> musicMenuFragments;
-  List<String> musicMenuTitles;
+  private List<Fragment> musicMenuFragments;
+  private List<String> musicMenuTitles;
+  public MusicMenuActivity context;
+  FragmentStatePagerAdapter adapter;
 
   private Fragment favariots;
   private Fragment tracks;
@@ -37,11 +41,13 @@ public class MusicMenuActivity extends AppCompatActivity {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_music_menu);
+    context = this;
 
     musicMenuFragments = new ArrayList<>();
     musicMenuTitles = new ArrayList<>();
     viewPager = findViewById(R.id.music_menu_view_pager);
     tabLayout = findViewById(R.id.music_menu_tablayout);
+    currentSongUserPanelBtn = findViewById(R.id.song_user_panel_btn);
 
     favariots = MusicMenuFragment.newInstance();
     tracks = MusicMenuFragment.newInstance();
@@ -53,7 +59,16 @@ public class MusicMenuActivity extends AppCompatActivity {
     addFragment(albums, ALBUM_TAB_NAME);
     addFragment(artists, ARTIST_TAB_NAME);
 
-    viewPager.setAdapter(new FragmentStatePagerAdapter(getSupportFragmentManager()) {
+
+    /*currentSongUserPanelBtn.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Intent intent = MusicPlayActivity.newIntent(context, MusicMenuFragment.songForParent.getId());
+        startActivity(intent);
+      }
+    });*/ // listener doesn't work correclty here
+
+    adapter = new FragmentStatePagerAdapter(getSupportFragmentManager()) {
       @Override
       public Fragment getItem(int position) {
         return musicMenuFragments.get(position);
@@ -69,7 +84,11 @@ public class MusicMenuActivity extends AppCompatActivity {
       public CharSequence getPageTitle(int position) {
         return musicMenuTitles.get(position);
       }
-    });
+    };
+
+    viewPager.setAdapter(adapter);
+
+    viewPager.setOffscreenPageLimit(4);
 
     tabLayout.setupWithViewPager(viewPager);
 

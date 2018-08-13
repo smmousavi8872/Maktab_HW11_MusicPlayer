@@ -30,6 +30,17 @@ public class Repository {
   }
 
 
+  public Song getSong(long songId) {
+    List<Song> songs = getSongList();
+    for (Song song : songs) {
+      if (song.getId() == songId)
+        return song;
+
+    }
+    return null;
+  }
+
+
   public List<Song> getSongList() {
     List<Song> songs = new ArrayList<>();
     Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
@@ -51,19 +62,17 @@ public class Repository {
 
 
   public String getSongImgUri(long albumId) {
-    ContentResolver musicResolver = context.getContentResolver();
-    Cursor cursor = musicResolver.query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+    String path = "";
+    Cursor cursor = context.getContentResolver().query(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
       new String[]{MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART},
-      MediaStore.Audio.Albums._ID + " = ? ",
-      new String[]{String.valueOf(albumId)}, null);
+      MediaStore.Audio.Albums._ID + "=?",
+      new String[]{String.valueOf(albumId)},
+      null);
 
-    String path = null;
-    assert cursor != null;
     if (cursor.moveToFirst()) {
       path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+      // do whatever you need to do
     }
-
-    cursor.close();
     return path;
   } // end of getSongImgUri()
 

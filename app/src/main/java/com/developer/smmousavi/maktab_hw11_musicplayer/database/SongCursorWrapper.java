@@ -2,6 +2,7 @@ package com.developer.smmousavi.maktab_hw11_musicplayer.database;
 
 import android.database.Cursor;
 import android.database.CursorWrapper;
+import android.provider.MediaStore;
 
 import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.model.Song;
 
@@ -11,14 +12,14 @@ public class SongCursorWrapper extends CursorWrapper {
   }
 
   public Song getSong() {
-    long id = getLong(getColumnIndex(android.provider.MediaStore.Audio.Media._ID));
-    String title = getString(getColumnIndex(android.provider.MediaStore.Audio.Media.TITLE));
-    String displayingName = getString(getColumnIndex(android.provider.MediaStore.Audio.Media.DISPLAY_NAME));
-    String Uri = getString(getColumnIndex(android.provider.MediaStore.Audio.Media.DATA));
-    String artist = getString(getColumnIndex(android.provider.MediaStore.Audio.Media.ARTIST));
-    String album = getString(getColumnIndex(android.provider.MediaStore.Audio.Media.ALBUM));
-    long albumId = getLong(getColumnIndex(android.provider.MediaStore.Audio.Media.ALBUM_ID));
-    long duration = getLong(getColumnIndex(android.provider.MediaStore.Audio.Media.DURATION));
+    long id = getLong(getColumnIndex(MediaStore.Audio.Media._ID));
+    String title = getString(getColumnIndex(MediaStore.Audio.Media.TITLE));
+    String displayingName = getString(getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
+    String Uri = getString(getColumnIndex(MediaStore.Audio.Media.DATA));
+    String artist = getString(getColumnIndex(MediaStore.Audio.Media.ARTIST));
+    String album = getString(getColumnIndex(MediaStore.Audio.Media.ALBUM));
+    long albumId = getLong(getColumnIndex(MediaStore.Audio.Media.ALBUM_ID));
+    long duration = getLong(getColumnIndex(MediaStore.Audio.Media.DURATION));
 
     Song song = new Song(id);
     song.setUri(Uri);
