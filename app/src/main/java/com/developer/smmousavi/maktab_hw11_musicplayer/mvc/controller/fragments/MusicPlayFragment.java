@@ -1,13 +1,16 @@
 package com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments;
 
 
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatSeekBar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,8 +21,17 @@ import android.widget.TextView;
 import com.developer.smmousavi.maktab_hw11_musicplayer.R;
 import com.developer.smmousavi.maktab_hw11_musicplayer.database.Repository;
 import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.model.Song;
+import com.developer.smmousavi.maktab_hw11_musicplayer.utilities.AndroidImage;
+import com.developer.smmousavi.maktab_hw11_musicplayer.utilities.GaussianBlur;
 
+import java.io.IOException;
+
+import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicMenuFragment.REPEATE_STATUS_ALL;
+import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicMenuFragment.REPEATE_STATUS_OFF;
+import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicMenuFragment.REPEATE_STATUS_ONE;
+import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicMenuFragment.isShuffled;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicMenuFragment.mp;
+import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicMenuFragment.repeatStatus;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -28,13 +40,13 @@ public class MusicPlayFragment extends Fragment {
 
   public static final String FRAGMENT_TAG = "music_play_fragment_tag";
   public static final String ARGS_SONG_ID = "args_song_id";
-  public static final String ARGS_ADAPTER_POS = "args_adapter_pos";
 
+  private Button favariotSongBtn;
+  private ImageView favariotSongIcon;
+  private ImageView fragmentLayout;
   public static ImageView musicImageLyricsImg;
   public static TextView musicTitleTxt;
   public static TextView musicAlbumTxt;
-  private Button favariotSongBtn;
-  private ImageView favariotSongIcon;
   public static AppCompatSeekBar seekBar;
   public static TextView currentSongTimeTxt;
   public static TextView songDurationTxt;
@@ -49,6 +61,7 @@ public class MusicPlayFragment extends Fragment {
 
   private long songId;
   private Song currentSong;
+  private SharedPreferences sharedPreferences;
 
 
   public static MusicPlayFragment newInstance(long songId) {
@@ -69,9 +82,9 @@ public class MusicPlayFragment extends Fragment {
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    setRetainInstance(true);
     songId = getArguments().getLong(ARGS_SONG_ID);
     currentSong = Repository.getInstance(getActivity()).getSong(songId);
-    Log.i("TAG10", songId + "");
   }
 
   @Override
@@ -80,9 +93,22 @@ public class MusicPlayFragment extends Fragment {
     // Inflate the layout for this fragment
     View view = inflater.inflate(R.layout.fragment_music_play, container, false);
     getViews(view);
-    favariotButtonActions();
-    playPauseButtonActions();
+    fragmentLayout = view.findViewById(R.id.music_play_fragment_layout);
+    Uri imageUri = Uri.parse(currentSong.getUri());
+    try {
+      Bitmap bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), imageUri);
+      GaussianBlur blur = new GaussianBlur();
+      Bitmap bluredImage = blur.process(new AndroidImage(bitmap)).getImage();
+      fragmentLayout.setImageBitmap(bluredImage);
 
+    } catch (IOException e) {
+      e.printStackTrace();
+
+    }
+    favariotButtonActions();
+    setPlayBtnIcon();
+    setShuffleBtnIcon();
+    setRepeatBtnIcon();
     return view;
   }
 
@@ -110,14 +136,41 @@ public class MusicPlayFragment extends Fragment {
   }// end of favariotButtonActions()
 
 
-  private void playPauseButtonActions() {
-    if (mp.isPlaying())
+  private void setPlayBtnIcon() {
+    if (mp == null)
+      songPlayPauseIcon.setBackground(getResources().getDrawable(R.drawable.ic_play_button));
+
+    else if (mp.isPlaying())
       songPlayPauseIcon.setBackground(getResources().getDrawable(R.drawable.ic_pause_button));
 
     else
       songPlayPauseIcon.setBackground(getResources().getDrawable(R.drawable.ic_play_button));
 
-  }// end of playPauseButtonActions()
+  }// end of setPlayBtnIcon()
+
+
+  private void setShuffleBtnIcon() {
+    if (isShuffled) {
+      songShuffleIcon.setBackground(getResources().getDrawable(R.drawable.ic_shuffle_song_purple));
+    } else {
+
+      songShuffleIcon.setBackground(getResources().getDrawable(R.drawable.ic_shuffle_song));
+    }
+  }
+
+
+  private void setRepeatBtnIcon() {
+    switch (repeatStatus) {
+      case REPEATE_STATUS_OFF:
+        songRepeatIcon.setBackground(getResources().getDrawable(R.drawable.ic_repeat_song));
+        break;
+      case REPEATE_STATUS_ONE:
+        songRepeatIcon.setBackground(getResources().getDrawable(R.drawable.ic_repeat_current_song));
+        break;
+      case REPEATE_STATUS_ALL:
+        songRepeatIcon.setBackground(getResources().getDrawable(R.drawable.ic_repeat_all_songs));
+    }
+  }
 
 
   public void getViews(View view) {
@@ -159,4 +212,11 @@ public class MusicPlayFragment extends Fragment {
     }
   }// end of playAudio()
 
+
+  public void savePreferences(String key, long value) {
+    sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
+    SharedPreferences.Editor editor = sharedPreferences.edit();
+    editor.putLong(key, value);
+    editor.apply();
+  }
 }
