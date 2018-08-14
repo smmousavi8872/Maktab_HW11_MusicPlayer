@@ -49,14 +49,12 @@ public class MusicPlayFragment extends Fragment {
 
   private long songId;
   private Song currentSong;
-  private int adapterPos;
 
 
-  public static MusicPlayFragment newInstance(long songId, int adapterPos) {
+  public static MusicPlayFragment newInstance(long songId) {
 
     Bundle args = new Bundle();
     args.putLong(ARGS_SONG_ID, songId);
-    args.putInt(ARGS_ADAPTER_POS, adapterPos);
 
     MusicPlayFragment fragment = new MusicPlayFragment();
     fragment.setArguments(args);
@@ -72,7 +70,6 @@ public class MusicPlayFragment extends Fragment {
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     songId = getArguments().getLong(ARGS_SONG_ID);
-    adapterPos = getArguments().getInt(ARGS_ADAPTER_POS);
     currentSong = Repository.getInstance(getActivity()).getSong(songId);
     Log.i("TAG10", songId + "");
   }
@@ -84,17 +81,10 @@ public class MusicPlayFragment extends Fragment {
     View view = inflater.inflate(R.layout.fragment_music_play, container, false);
     getViews(view);
     favariotButtonActions();
-
-
-
     playPauseButtonActions();
 
     return view;
   }
-
-
-  // end of setPlayingSongInfo()
-
 
 
   private void favariotButtonActions() {
@@ -127,23 +117,7 @@ public class MusicPlayFragment extends Fragment {
     else
       songPlayPauseIcon.setBackground(getResources().getDrawable(R.drawable.ic_play_button));
 
-    songPlayPauseBtn.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        if (mp.isPlaying()) {
-          mp.pause();
-          songPlayPauseIcon.setBackground(getResources().getDrawable(R.drawable.ic_play_button));
-
-        } else {
-          mp.start();
-          songPlayPauseIcon.setBackground(getResources().getDrawable(R.drawable.ic_pause_button));
-        }
-      }
-    });
   }// end of playPauseButtonActions()
-
-
-
 
 
   public void getViews(View view) {
@@ -171,7 +145,6 @@ public class MusicPlayFragment extends Fragment {
     Uri imgUri = Uri.parse(albumArtId);
     imageView.setBackground(getResources().getDrawable(R.drawable.music_background));
     imageView.setImageURI(imgUri);
-
   }
 
 

@@ -3,11 +3,13 @@ package com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -35,15 +37,16 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.*;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.currentSongTimeTxt;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.musicAlbumTxt;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.musicImageLyricsImg;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.musicTitleTxt;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.seekBar;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.songDurationTxt;
+import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.songNextBtn;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.songPlayPauseBtn;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.songPlayPauseIcon;
+import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.songPrevBtn;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -53,11 +56,17 @@ public class MusicMenuFragment extends Fragment {
 
   public static final String FRAGMENT_TAG = "music_menu_fragment";
   private static final int REQUEST_READ_EXTERNAL_STORAGE = 0;
+  public static final String SHARED_NOW_PLAYING = "shared_now_playing";
+  public static final int PREV_BTN_ID = 0;
+  public static final int NEXT_BTN_ID = 1;
 
   public static MediaPlayer mp;
-  public static List<Song> songList;
+  public static Song nowPlayingSong;
+  private List<Song> songList;
+  private MusicAdapter musicAdapter;
+  private Handler mHandler;
+
   public RecyclerView recyclerView;
-  public MusicAdapter musicAdapter;
   public RelativeLayout currentPlayingMusicLayout;
   public Button currentSongUserPanelBtn;
   public ImageView currentPlayingMusicImageView;
@@ -69,6 +78,9 @@ public class MusicMenuFragment extends Fragment {
   public ImageView userPanelPlayIcon;
   public ImageView userPanelNextIcon;
   public ImageView userPanelPrevIcon;
+  private SharedPreferences sharedPreferences;
+  private MusicViewHolder musicHolder;
+
 
   public static MusicMenuFragment newInstance() {
 
@@ -84,10 +96,20 @@ public class MusicMenuFragment extends Fragment {
     // Required empty public constructor
   }
 
+
   @Override
   public void onResume() {
     super.onResume();
     userPanelPlayButtonInitialize();
+    if (loadPreferences(SHARED_NOW_PLAYING) != 0) {
+      nowPlayingSong = Repository.getInstance(getActivity()).getSong(loadPreferences(SHARED_NOW_PLAYING));
+      setCurrentSongText(nowPlayingSong);
+    }
+  }
+
+  @Override
+  public void onSaveInstanceState(@NonNull Bundle outState) {
+    super.onSaveInstanceState(outState);
   }
 
   @Override
@@ -115,10 +137,11 @@ public class MusicMenuFragment extends Fragment {
       userPanelPlayIcon.setBackground(getResources().getDrawable(R.drawable.ic_pause_button));
 
 
-     /* for having the userPanelPlayBtn works as soon as the first time is's cliked
+    /* for having the userPanelPlayBtn works as soon as the first time is's cliked
      * it's listener must be redeclerd here. but playOrPause() method is available
-     * just in the MusicHolder clase
-    userPanelPlayBtn.setOnClickListener(new View.OnClickListener() {
+     * just in the MusicHolder clase */
+
+    /*userPanelPlayBtn.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         MusicMenuFragment.playOrPause();
@@ -178,7 +201,7 @@ public class MusicMenuFragment extends Fragment {
     userPanelPlayIcon = getActivity().findViewById(R.id.user_panel_play_icon);
     userPanelNextIcon = getActivity().findViewById(R.id.user_panel_next_icon);
     userPanelPrevIcon = getActivity().findViewById(R.id.user_panel_prev_icon);
-  }
+  }// end of findParentViews()
 
 
   public class MusicViewHolder extends RecyclerView.ViewHolder {
@@ -190,11 +213,6 @@ public class MusicMenuFragment extends Fragment {
     private TextView titleView;
     private TextView artistView;
     private Button songTrackBtn;
-    private int lastNextPosition;
-    private int lastPrevPosition;
-    private boolean positionByNext;
-    private boolean positionByPrev;
-    private Song nowPlayingSong;
 
     public MusicViewHolder(@NonNull final View itemView) {
       super(itemView);
@@ -230,6 +248,7 @@ public class MusicMenuFragment extends Fragment {
           lastPlayingSong = selectedSong;
           lastPlayingSong.setPlaying(true);
           nowPlayingSong = selectedSong;
+          savePreferences(SHARED_NOW_PLAYING, nowPlayingSong.getId());
 
           userPanelPlayIcon.setBackgroundResource(R.drawable.ic_pause_button);
 
@@ -240,14 +259,14 @@ public class MusicMenuFragment extends Fragment {
           currentSongUserPanelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-              Intent intent = MusicPlayActivity.newIntent(parent.context, nowPlayingSong.getId(), getAdapterPosition());
+              Intent intent = MusicPlayActivity.newIntent(parent.context, nowPlayingSong.getId());
               startActivity(intent);
               Handler handler = new Handler();
               handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                  setOnNextListener(songNextBtn);
-                  setOnPrevListener(songPrevBtn);
+                  setOnPrevOrNextListener(songNextBtn, NEXT_BTN_ID);
+                  setOnPrevOrNextListener(songPrevBtn, PREV_BTN_ID);
                   setPlayingSongInfo(nowPlayingSong);
                   setSeekBarActions(nowPlayingSong);
                   playOrPauseBtnListener(songPlayPauseBtn, songPlayPauseIcon);
@@ -261,69 +280,62 @@ public class MusicMenuFragment extends Fragment {
 
 
     private void setPlayingSongInfo(Song song) {
-      try {
-        setSongImage(song, musicImageLyricsImg);
-        musicTitleTxt.setText(song.getDisplayingName());
-        musicAlbumTxt.setText(song.getArtist());
-        int durationMin = (int) song.getDuration() / 1000 / 60;
-        int durationSec = (int) song.getDuration() / 1000 % 60;
-        songDurationTxt.setText(getString(R.string.music_duration, durationMin, durationSec));
-        currentSongTimeTxt.setText(getString(R.string.music_duration, durationMin, durationSec));
-      } catch (Exception e) {
-        e.getStackTrace();
-      }
+      setSongImage(song, musicImageLyricsImg);
+      musicTitleTxt.setText(song.getDisplayingName());
+      musicAlbumTxt.setText(song.getArtist());
+      int durationMin = (int) song.getDuration() / 1000 / 60;
+      int durationSec = (int) song.getDuration() / 1000 % 60;
+      songDurationTxt.setText(getString(R.string.music_duration, durationMin, durationSec));
+      currentSongTimeTxt.setText(getString(R.string.music_duration, durationMin, durationSec));
     }
 
 
     private void setSeekBarActions(Song song) {
-      try {
-        seekBar.setMax((int) song.getDuration());
-        final Handler mHandler = new Handler();
+      seekBar.setMax((int) song.getDuration());
+      mHandler = new Handler();
 
-        getActivity().runOnUiThread(new Runnable() {
-          @Override
-          public void run() {
-            if (mp != null) {
-              int mCurrentPosition = mp.getCurrentPosition();
-              seekBar.setProgress(mCurrentPosition);
-              int min = mCurrentPosition / 1000 / 60;
-              int sec = mCurrentPosition / 1000 % 60;
-              String currentTimeStr = String.format("%02d:%02d", min, sec);
-              currentSongTimeTxt.setText(currentTimeStr);
-            }
-            mHandler.postDelayed(this, 1000);
+      getActivity().runOnUiThread(new Runnable() {
+        @Override
+        public void run() {
+          if (mp != null) {
+            int mCurrentPosition = mp.getCurrentPosition();
+            seekBar.setProgress(mCurrentPosition);
+            int min = mCurrentPosition / 1000 / 60;
+            int sec = mCurrentPosition / 1000 % 60;
+            String currentTimeStr = String.format("%02d:%02d", min, sec);
+            currentSongTimeTxt.setText(currentTimeStr);
           }
-        });
-        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-          @Override
-          public void onStopTrackingTouch(SeekBar seekBar) {
+          mHandler.postDelayed(this, 1000);
+        }
+      });
 
+      seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        @Override
+        public void onStopTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onStartTrackingTouch(SeekBar seekBar) {
+
+        }
+
+        @Override
+        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+          if (mp != null && fromUser) {
+            mp.seekTo(progress);
           }
-
-          @Override
-          public void onStartTrackingTouch(SeekBar seekBar) {
-
-          }
-
-          @Override
-          public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            if (mp != null && fromUser) {
-              mp.seekTo(progress);
-            }
-          }
-        });
-      } catch (Exception e) {
-        e.getStackTrace();
-      }
+        }
+      });
     }// end of setSeekBarActions()
 
 
     public void setupUserMusicPanel() {
       playOrPauseBtnListener(userPanelPlayBtn, userPanelPlayIcon);
 
-      setOnNextListener(userPanelNextBtn);
+      setOnPrevOrNextListener(userPanelNextBtn, NEXT_BTN_ID);
 
-      setOnPrevListener(userPanelPrevBtn);
+      setOnPrevOrNextListener(userPanelPrevBtn, PREV_BTN_ID);
     }// end of setupUserMusicPanel()
 
 
@@ -337,23 +349,28 @@ public class MusicMenuFragment extends Fragment {
     }// end of playOrPauseBtnListener()
 
 
-    private void setOnPrevListener(Button button) {
+    private void setOnPrevOrNextListener(Button button, final int btnId) {
       button.setOnClickListener(new View.OnClickListener() {
-        int prevPos = getAdapterPosForPrev(getAdapterPosition());
+        int newPos = songList.indexOf(nowPlayingSong);
 
         @Override
         public void onClick(View view) {
-          positionByPrev = true;
-          positionByNext = false;
-
-          if (prevPos > 1)
-            prevPos--;
-
-          else
-            prevPos = songList.size() - 1;
-
-          lastPrevPosition = prevPos;
-          nowPlayingSong = songList.get(prevPos);
+          switch (btnId) {
+            case 0:
+              if (newPos > 1)
+                newPos--;
+              else
+                newPos = songList.size() - 1;
+              break;
+            case 1:
+              if (newPos < songList.size() - 1)
+                newPos++;
+              else
+                newPos = 0;
+          }
+          nowPlayingSong = songList.get(newPos);
+          selectedSong = nowPlayingSong;
+          savePreferences(SHARED_NOW_PLAYING, nowPlayingSong.getId());
           stopAudio(mp, selectedSong);
           playInList(nowPlayingSong);
 
@@ -361,77 +378,17 @@ public class MusicMenuFragment extends Fragment {
 
           setCurrentSongText(nowPlayingSong);
 
-          setPlayingSongInfo(nowPlayingSong);
-          setSeekBarActions(nowPlayingSong);
           playOrPauseBtnListener(userPanelPlayBtn, userPanelPlayIcon);
-          if (songPlayPauseBtn != null)
+
+          if (songPlayPauseBtn != null) {
             playOrPauseBtnListener(songPlayPauseBtn, songPlayPauseIcon);
+            songPlayPauseIcon.setBackgroundResource(R.drawable.ic_pause_button);
+            setPlayingSongInfo(nowPlayingSong);
+            setSeekBarActions(nowPlayingSong);
+          }
         }
       });
-    }
-
-    private void setOnNextListener(Button button) {
-      button.setOnClickListener(new View.OnClickListener() {
-        int nextPos = getAdapterPosForNext(getAdapterPosition());
-
-        @Override
-        public void onClick(View view) {
-          positionByNext = true;
-          positionByPrev = false;
-
-          if (nextPos < songList.size() - 1)
-            nextPos++;
-
-          else
-            nextPos = 0;
-
-          lastNextPosition = nextPos;
-          nowPlayingSong = songList.get(nextPos);
-          stopAudio(mp, selectedSong);
-          playInList(nowPlayingSong);
-
-          userPanelPlayIcon.setBackgroundResource(R.drawable.ic_pause_button);
-
-          setCurrentSongText(nowPlayingSong);
-
-          setPlayingSongInfo(nowPlayingSong);
-          setSeekBarActions(nowPlayingSong);
-          playOrPauseBtnListener(userPanelPlayBtn, userPanelPlayIcon);
-          if (songPlayPauseBtn != null)
-            playOrPauseBtnListener(songPlayPauseBtn, songPlayPauseIcon);
-        }
-      });
-
-    }
-
-
-    public int getAdapterPosForNext(int adapterPos) {
-      int nextPos;
-      if (!positionByPrev)
-        nextPos = adapterPos;
-
-      else
-        nextPos = lastPrevPosition;
-      return nextPos;
-    }
-
-
-    public int getAdapterPosForPrev(int adapterPos) {
-      int prevPos;
-      if (!positionByNext)
-        prevPos = adapterPos;
-      else
-        prevPos = lastNextPosition;
-
-      return prevPos;
-    }
-
-
-    public void setCurrentSongText(Song song) {
-      currentPlayingMusicName.setText(song.getDisplayingName());
-      currentPlayingMusicArtist.setText(song.getArtist());
-      setSongImage(song, currentPlayingMusicImageView);
-    }// end of setCurrentSongText()
+    }// end of setOnPrevOrNextListener()
 
 
     private void playInList(Song selectedSong) {
@@ -459,28 +416,10 @@ public class MusicMenuFragment extends Fragment {
       else
         startAudio(mp, selectedSong);
 
-      setUserPanelPlayIcon(icon);
+      setUserPanelPlayIcon(icon, selectedSong);
     }// end of playOrPause()
 
 
-    private void setUserPanelPlayIcon(ImageView icon) {
-      if (selectedSong.isPlaying()) {
-        icon.setBackgroundResource(R.drawable.ic_pause_button);
-        userPanelPlayIcon.setBackgroundResource(R.drawable.ic_pause_button);
-
-      } else {
-        icon.setBackgroundResource(R.drawable.ic_play_button);
-        userPanelPlayIcon.setBackgroundResource(R.drawable.ic_play_button);
-      }
-    }// end of setUserPanelPlayIcon()
-
-
-    private void setSongImage(Song song, ImageView imageView) {
-      String albumArtId = Repository.getInstance(getActivity()).getSongImgUri(song.getAlbumId());
-      Uri imgUri = Uri.parse(albumArtId);
-      imageView.setBackground(getResources().getDrawable(R.drawable.music_background));
-      imageView.setImageURI(imgUri);
-    }
   }// end of MusicViewHolder{}
 
 
@@ -491,15 +430,14 @@ public class MusicMenuFragment extends Fragment {
       this.songs = songs;
     }
 
-
     @NonNull
     @Override
     public MusicViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
       LayoutInflater inflater = LayoutInflater.from(getActivity());
       View view = inflater.inflate(R.layout.song_track_view, parent, false);
-      return new MusicViewHolder(view);
+      musicHolder = new MusicViewHolder(view);
+      return musicHolder;
     }// end of onCreateViewHolder()
-
 
     @Override
     public void onBindViewHolder(@NonNull MusicViewHolder holder, int position) {
@@ -507,11 +445,53 @@ public class MusicMenuFragment extends Fragment {
       holder.setIsRecyclable(false);
     }// end of onBindeViewHolder()
 
-
     @Override
     public int getItemCount() {
       return songs.size();
     }// end of getItemCount()
+
+
+  }// end of MusicAdapter{}
+
+
+  private void setUserPanelPlayIcon(ImageView icon, Song selectedSong) {
+    if (selectedSong.isPlaying()) {
+      icon.setBackgroundResource(R.drawable.ic_pause_button);
+      userPanelPlayIcon.setBackgroundResource(R.drawable.ic_pause_button);
+
+    } else {
+      icon.setBackgroundResource(R.drawable.ic_play_button);
+      userPanelPlayIcon.setBackgroundResource(R.drawable.ic_play_button);
+    }
+  }// end of setUserPanelPlayIcon()
+
+
+  private void setSongImage(Song song, ImageView imageView) {
+    String albumArtId = Repository.getInstance(getActivity()).getSongImgUri(song.getAlbumId());
+    Uri imgUri = Uri.parse(albumArtId);
+    imageView.setBackground(getResources().getDrawable(R.drawable.music_background));
+    imageView.setImageURI(imgUri);
+  }
+
+
+  public void setCurrentSongText(Song song) {
+    currentPlayingMusicName.setText(song.getDisplayingName());
+    currentPlayingMusicArtist.setText(song.getArtist());
+    setSongImage(song, currentPlayingMusicImageView);
+  }// end of setCurrentSongText()
+
+
+  public void savePreferences(String key, long value) {
+    sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
+    SharedPreferences.Editor editor = sharedPreferences.edit();
+    editor.putLong(key, value);
+    editor.apply();
+  }
+
+
+  public long loadPreferences(String key) {
+    sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
+    return sharedPreferences.getLong(key, 0);
   }
 
 
