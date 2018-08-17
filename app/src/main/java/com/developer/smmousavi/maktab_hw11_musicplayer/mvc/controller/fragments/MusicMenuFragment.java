@@ -17,6 +17,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -137,6 +138,15 @@ public class MusicMenuFragment extends Fragment {
     }
   }
 
+  private void initializeMediPlayer() {
+    if (mp == null) {
+      long lastPlayedId = loadLongPreferences(SHARED_NOW_PLAYING);
+      Song lastPlayedSong = getSongFromPlayList(lastPlayedId);
+      playAudio(lastPlayedSong.getUri());
+      pauseAudio(mp, lastPlayedSong);
+    }
+  }
+
 
   @Override
   public void onSaveInstanceState(@NonNull Bundle outState) {
@@ -147,8 +157,7 @@ public class MusicMenuFragment extends Fragment {
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    songPlayList =
-      new ArrayList<>();
+    songPlayList = new ArrayList<>();
     songPlayList = getSongListByPermission();
     setRetainInstance(true);
     sortSongList(songPlayList);
@@ -166,13 +175,20 @@ public class MusicMenuFragment extends Fragment {
     recyclerView = view.findViewById(R.id.music_menu_recycler_view);
     recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
     setupAdapter();
-    InitializeList();
 
     return view;
   }
 
 
   private void InitializeList() {
+    initializePlayPauseBtn();
+    initializeShuffleBtn();
+    initializeMediPlayer();
+    initializeRepeatBtn();
+  }
+
+
+  private void initializePlayPauseBtn() {
     if (mp == null)
       userPanelPlayIcon.setBackground(getResources().getDrawable(R.drawable.ic_play_button));
 
@@ -181,14 +197,20 @@ public class MusicMenuFragment extends Fragment {
 
     else if (mp.isPlaying())
       userPanelPlayIcon.setBackground(getResources().getDrawable(R.drawable.ic_pause_button));
+  }
 
+
+  private void initializeShuffleBtn() {
     isShuffled = loadBooleanPrefrences(SHARED_IS_SHUFFLED);
     if (isShuffled)
       Collections.shuffle(songPlayList);
 
     else
       sortSongList(songPlayList);
+  }
 
+
+  private void initializeRepeatBtn() {
     repeatStatus = (int) loadLongPreferences(SHARED_REPEAT_STATUS);
     switch (repeatStatus) {
       case REPEATE_STATUS_OFF:
@@ -420,71 +442,74 @@ public class MusicMenuFragment extends Fragment {
 
   private void repeatBtnListener() {
     repeatStatus = (int) loadLongPreferences(SHARED_REPEAT_STATUS);
+
     songRepeatBtn.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        switch (repeatStatus) {
-          case REPEATE_STATUS_OFF:
-            repeatStatus = REPEATE_STATUS_ONE;
-            saveLongPreferences(SHARED_REPEAT_STATUS, repeatStatus);
-            songRepeatIcon.setBackground(getResources().getDrawable(R.drawable.ic_repeat_song));
-            repeatAllSongs();
-            break;
-
-          case REPEATE_STATUS_ONE:
-            repeatStatus = REPEATE_STATUS_ALL;
-            saveLongPreferences(SHARED_REPEAT_STATUS, repeatStatus);
-            songRepeatIcon.setBackground(getResources().getDrawable(R.drawable.ic_repeat_current_song));
-            repeatCurrentSong();
-            break;
-
-          case REPEATE_STATUS_ALL:
-            repeatStatus = REPEATE_STATUS_OFF;
-            saveLongPreferences(SHARED_REPEAT_STATUS, repeatStatus);
-            songRepeatIcon.setBackground(getResources().getDrawable(R.drawable.ic_repeat_all_songs));
-            doNotRepeat();
-            break;
-        }
+        setRepeatBtnActions();
+        initializeRepeatBtn();
       }
     });
   }
 
 
-  private void repeatAllSongs() {
-    if (mp == null) {
-      mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-        @Override
-        public void onCompletion(MediaPlayer mediaPlayer) {
-          goToNextOrPrevSong(NEXT_BTN_ID);
-        }
-      });
+  private void setRepeatBtnActions() {
+    switch (repeatStatus) {
+      case REPEATE_STATUS_OFF:
+        repeatStatus = REPEATE_STATUS_ONE;
+        saveLongPreferences(SHARED_REPEAT_STATUS, repeatStatus);
+        songRepeatIcon.setBackground(getResources().getDrawable(R.drawable.ic_repeat_current_song));
+        repeatAllSongs();
+        break;
+
+      case REPEATE_STATUS_ONE:
+        repeatStatus = REPEATE_STATUS_ALL;
+        saveLongPreferences(SHARED_REPEAT_STATUS, repeatStatus);
+        songRepeatIcon.setBackground(getResources().getDrawable(R.drawable.ic_repeat_all_songs));
+        repeatCurrentSong();
+        break;
+
+      case REPEATE_STATUS_ALL:
+        repeatStatus = REPEATE_STATUS_OFF;
+        saveLongPreferences(SHARED_REPEAT_STATUS, repeatStatus);
+        songRepeatIcon.setBackground(getResources().getDrawable(R.drawable.ic_repeat_song));
+        doNotRepeat();
+        break;
     }
+  }
+
+
+  private void repeatAllSongs() {
+    mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+      @Override
+      public void onCompletion(MediaPlayer mediaPlayer) {
+        Log.i("Complete", " on repeatAllSongs()");
+        goToNextOrPrevSong(NEXT_BTN_ID);
+      }
+    });
   }
 
 
   private void repeatCurrentSong() {
-    if (mp == null) {
-      mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-        @Override
-        public void onCompletion(MediaPlayer mediaPlayer) {
-          resetAudio(mp, classSelectedSong.getUri());
-        }
-      });
-    }
+    mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+      @Override
+      public void onCompletion(MediaPlayer mediaPlayer) {
+        Log.i("Complete", " on repeatCurrentSong()");
+        resetAudio(mp, classSelectedSong.getUri());
+      }
+    });
   }
 
 
   private void doNotRepeat() {
-    if (mp == null) {
-      mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-        @Override
-        public void onCompletion(MediaPlayer mediaPlayer) {
-          while (songPlayList.indexOf(classLastPlayingSong) != songPlayList.size() - 1)
-            goToNextOrPrevSong(NEXT_BTN_ID);
-        }
-      });
-    }
+    mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+      @Override
+      public void onCompletion(MediaPlayer mediaPlayer) {
+        songPlayPauseIcon.setBackgroundResource(R.drawable.ic_play_button);
+      }
+    });
   }
+
 
   private void shuffleBtnListener() {
     if (isShuffled) {
@@ -510,7 +535,6 @@ public class MusicMenuFragment extends Fragment {
           sortSongList(songPlayList);
           saveBooleanPreferences(SHARED_IS_SHUFFLED, isShuffled);
         }
-
       }
     });
   }
@@ -554,7 +578,6 @@ public class MusicMenuFragment extends Fragment {
           playInList(selectedSong);
           setCurrentSongText(selectedSong);
           setupUserMusicPanel();
-
           currentSongUserPlayAction();
         }
       });
@@ -684,6 +707,7 @@ public class MusicMenuFragment extends Fragment {
   public void playAudio(String path) {
     try {
       mp = new MediaPlayer();
+      initializeRepeatBtn();
       mp.setDataSource(path);
       mp.prepare();
       mp.start();

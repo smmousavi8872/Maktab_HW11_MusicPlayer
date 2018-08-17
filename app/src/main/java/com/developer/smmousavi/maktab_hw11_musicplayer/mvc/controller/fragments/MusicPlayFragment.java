@@ -3,10 +3,8 @@ package com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments
 
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -192,31 +190,4 @@ public class MusicPlayFragment extends Fragment {
     songRepeatIcon = view.findViewById(R.id.song_repeat_icn);
   }
 
-
-  private void setSongImage(Song song, ImageView imageView) {
-    String albumArtId = Repository.getInstance(getActivity()).getSongImgUri(song.getAlbumId());
-    Uri imgUri = Uri.parse(albumArtId);
-    imageView.setBackground(getResources().getDrawable(R.drawable.music_background));
-    imageView.setImageURI(imgUri);
-  }
-
-
-  public void playAudio(String path) {
-    try {
-      mp = new MediaPlayer();
-      mp.setDataSource(path);
-      mp.prepare();
-      mp.start();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }// end of playAudio()
-
-
-  public void savePreferences(String key, long value) {
-    sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity().getApplicationContext());
-    SharedPreferences.Editor editor = sharedPreferences.edit();
-    editor.putLong(key, value);
-    editor.apply();
-  }
 }
