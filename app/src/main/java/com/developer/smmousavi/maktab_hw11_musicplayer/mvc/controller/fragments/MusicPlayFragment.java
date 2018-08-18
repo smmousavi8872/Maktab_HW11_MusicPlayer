@@ -1,11 +1,7 @@
 package com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments;
 
 
-import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatSeekBar;
@@ -14,15 +10,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.developer.smmousavi.maktab_hw11_musicplayer.R;
 import com.developer.smmousavi.maktab_hw11_musicplayer.database.Repository;
 import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.model.Song;
-import com.developer.smmousavi.maktab_hw11_musicplayer.utilities.AndroidImage;
-import com.developer.smmousavi.maktab_hw11_musicplayer.utilities.GaussianBlur;
-
-import java.io.IOException;
+import com.developer.smmousavi.maktab_hw11_musicplayer.utilities.lyrics.SubtitleView;
 
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicMenuFragment.REPEATE_STATUS_ALL;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicMenuFragment.REPEATE_STATUS_OFF;
@@ -41,7 +35,11 @@ public class MusicPlayFragment extends Fragment {
 
   private Button favariotSongBtn;
   private ImageView favariotSongIcon;
-  private ImageView fragmentLayout;
+  private ImageView fragmentBackgroundImg;
+  public static SubtitleView lyricsSubView;
+  public static Button showLyricsBtn;
+  public static ImageView showLyricsIcon;
+  public static ScrollView lyricsScrollView;
   public static ImageView musicImageLyricsImg;
   public static TextView musicTitleTxt;
   public static TextView musicAlbumTxt;
@@ -57,9 +55,10 @@ public class MusicPlayFragment extends Fragment {
   public static Button songRepeatBtn;
   public static ImageView songRepeatIcon;
 
+
   private long songId;
+  public static boolean visibleLyrics;
   private Song currentSong;
-  private SharedPreferences sharedPreferences;
 
 
   public static MusicPlayFragment newInstance(long songId) {
@@ -71,6 +70,7 @@ public class MusicPlayFragment extends Fragment {
     fragment.setArguments(args);
     return fragment;
   }
+
 
   public MusicPlayFragment() {
     // Required empty public constructor
@@ -85,29 +85,43 @@ public class MusicPlayFragment extends Fragment {
     currentSong = Repository.getInstance(getActivity()).getSong(songId);
   }
 
+
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container,
                            Bundle savedInstanceState) {
     // Inflate the layout for this fragment
     View view = inflater.inflate(R.layout.fragment_music_play, container, false);
     getViews(view);
-    fragmentLayout = view.findViewById(R.id.music_play_fragment_layout);
-    Uri imageUri = Uri.parse(currentSong.getUri());
-    try {
-      Bitmap bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(), imageUri);
-      GaussianBlur blur = new GaussianBlur();
-      Bitmap bluredImage = blur.process(new AndroidImage(bitmap)).getImage();
-      fragmentLayout.setImageBitmap(bluredImage);
-
-    } catch (IOException e) {
-      e.printStackTrace();
-
-    }
     favariotButtonActions();
     setPlayBtnIcon();
     setShuffleBtnIcon();
     setRepeatBtnIcon();
     return view;
+  }
+
+
+  public void getViews(View view) {
+    musicImageLyricsImg = view.findViewById(R.id.song_cover_image_background);
+    musicTitleTxt = view.findViewById(R.id.song_name_text);
+    musicAlbumTxt = view.findViewById(R.id.song_albume_text);
+    favariotSongBtn = view.findViewById(R.id.favariot_song_btn);
+    favariotSongIcon = view.findViewById(R.id.favariot_song_icn);
+    lyricsScrollView = view.findViewById(R.id.song_lyrics_scroll_view);
+    lyricsSubView = view.findViewById(R.id.song_lyrics_sub_view);
+    showLyricsBtn = view.findViewById(R.id.song_lyrics_btn);
+    showLyricsIcon = view.findViewById(R.id.song_lyrics_icon);
+    fragmentBackgroundImg = view.findViewById(R.id.music_play_fragment_layout);
+    seekBar = view.findViewById(R.id.song_seek_bar);
+    currentSongTimeTxt = view.findViewById(R.id.current_music_time);
+    songDurationTxt = view.findViewById(R.id.music_duration);
+    songPlayPauseBtn = view.findViewById(R.id.song_play_btn);
+    songPlayPauseIcon = view.findViewById(R.id.song_play_icn);
+    songNextBtn = view.findViewById(R.id.song_next_btn);
+    songPrevBtn = view.findViewById(R.id.song_prev_btn);
+    songShuffleBtn = view.findViewById(R.id.song_shuffle_btn);
+    songShuffleIcon = view.findViewById(R.id.song_shuffle_icn);
+    songRepeatBtn = view.findViewById(R.id.song_repeat_btn);
+    songRepeatIcon = view.findViewById(R.id.song_repeat_icn);
   }
 
 
@@ -170,24 +184,5 @@ public class MusicPlayFragment extends Fragment {
     }
   }
 
-
-  public void getViews(View view) {
-    musicImageLyricsImg = view.findViewById(R.id.song_lyrics_image_background);
-    musicTitleTxt = view.findViewById(R.id.song_name_text);
-    musicAlbumTxt = view.findViewById(R.id.song_albume_text);
-    favariotSongBtn = view.findViewById(R.id.favariot_song_btn);
-    favariotSongIcon = view.findViewById(R.id.favariot_song_icn);
-    seekBar = view.findViewById(R.id.song_seek_bar);
-    currentSongTimeTxt = view.findViewById(R.id.current_music_time);
-    songDurationTxt = view.findViewById(R.id.music_duration);
-    songPlayPauseBtn = view.findViewById(R.id.song_play_btn);
-    songPlayPauseIcon = view.findViewById(R.id.song_play_icn);
-    songNextBtn = view.findViewById(R.id.song_next_btn);
-    songPrevBtn = view.findViewById(R.id.song_prev_btn);
-    songShuffleBtn = view.findViewById(R.id.song_shuffle_btn);
-    songShuffleIcon = view.findViewById(R.id.song_shuffle_icn);
-    songRepeatBtn = view.findViewById(R.id.song_repeat_btn);
-    songRepeatIcon = view.findViewById(R.id.song_repeat_icn);
-  }
 
 }

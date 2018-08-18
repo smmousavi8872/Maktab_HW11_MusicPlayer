@@ -1,4 +1,4 @@
-package com.developer.smmousavi.maktab_hw11_musicplayer.utilities;
+package com.developer.smmousavi.maktab_hw11_musicplayer.utilities.blur;
 
 import android.graphics.Bitmap;
 

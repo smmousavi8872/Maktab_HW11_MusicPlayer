@@ -8,6 +8,7 @@ public class Song {
   private String artist;
   private String album;
   private String displayingName;
+  private String lyrics;
   private long albumArtId;
   private long duration;
   private boolean playing;
@@ -109,6 +110,14 @@ public class Song {
 
   public void setFavariot(boolean favariot) {
     this.favariot = favariot;
+  }
+
+  public String getLyrics() {
+    return lyrics;
+  }
+
+  public void setLyrics(String lyrics) {
+    this.lyrics = lyrics;
   }
 
   public Song cloneSong() {

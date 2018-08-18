@@ -17,7 +17,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,6 +30,7 @@ import com.developer.smmousavi.maktab_hw11_musicplayer.R;
 import com.developer.smmousavi.maktab_hw11_musicplayer.database.Repository;
 import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.activities.MusicMenuActivity;
 import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.activities.MusicPlayActivity;
+import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.model.Lyrics;
 import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.model.Song;
 
 import java.util.ArrayList;
@@ -39,10 +39,14 @@ import java.util.Comparator;
 import java.util.List;
 
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.currentSongTimeTxt;
+import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.lyricsScrollView;
+import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.lyricsSubView;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.musicAlbumTxt;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.musicImageLyricsImg;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.musicTitleTxt;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.seekBar;
+import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.showLyricsBtn;
+import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.showLyricsIcon;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.songDurationTxt;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.songNextBtn;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.songPlayPauseBtn;
@@ -52,6 +56,7 @@ import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fra
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.songRepeatIcon;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.songShuffleBtn;
 import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.songShuffleIcon;
+import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fragments.MusicPlayFragment.visibleLyrics;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -145,12 +150,6 @@ public class MusicMenuFragment extends Fragment {
       playAudio(lastPlayedSong.getUri());
       pauseAudio(mp, lastPlayedSong);
     }
-  }
-
-
-  @Override
-  public void onSaveInstanceState(@NonNull Bundle outState) {
-    super.onSaveInstanceState(outState);
   }
 
 
@@ -288,11 +287,9 @@ public class MusicMenuFragment extends Fragment {
 
   private void setOnPrevOrNextListener(Button button, final int btnId) {
     button.setOnClickListener(new View.OnClickListener() {
-
       @Override
       public void onClick(View view) {
         goToNextOrPrevSong(btnId);
-
       }
     });
   }// end of setOnPrevOrNextListener()
@@ -302,8 +299,9 @@ public class MusicMenuFragment extends Fragment {
     long lastPlayedId = loadLongPreferences(SHARED_LAST_PLAYED_IN_PLAY_LIST);
     Song lastPlayedSong = getSongFromPlayList(lastPlayedId);
     int newPos = songPlayList.indexOf(lastPlayedSong);
-
     Song prevSong = songPlayList.get(newPos);
+    invalidateLyrics();
+
     switch (nextOrPrevId) {
       case PREV_BTN_ID:
         if (newPos > 1)
@@ -429,6 +427,26 @@ public class MusicMenuFragment extends Fragment {
   }// end of setSeekBarActions()
 
 
+  private void currentSongUserPlayAction() {
+    final MusicMenuActivity parent = (MusicMenuActivity) getActivity();
+    currentSongUserPanelBtn.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        Intent intent = MusicPlayActivity.newIntent(parent.context, classSelectedSong.getId());
+        startActivity(intent);
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+          @Override
+          public void run() {
+            setMusicPlayFragmentListeners();
+
+          }
+        }, 100);
+      }
+    });
+  }
+
+
   private void setMusicPlayFragmentListeners() {
     setOnPrevOrNextListener(songNextBtn, NEXT_BTN_ID);
     setOnPrevOrNextListener(songPrevBtn, PREV_BTN_ID);
@@ -437,16 +455,19 @@ public class MusicMenuFragment extends Fragment {
     playOrPauseBtnListener(songPlayPauseBtn, songPlayPauseIcon);
     shuffleBtnListener();
     repeatBtnListener();
+    setLyricsListenr();
   }// end of setMusicPlayFragmentListeners()
 
 
   private void repeatBtnListener() {
+    //for first time going to the MusicPlayActivity
+    initializeRepeatBtn();
     repeatStatus = (int) loadLongPreferences(SHARED_REPEAT_STATUS);
-
     songRepeatBtn.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         setRepeatBtnActions();
+        //for first time after repeatBtn has changed
         initializeRepeatBtn();
       }
     });
@@ -483,7 +504,6 @@ public class MusicMenuFragment extends Fragment {
     mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
       @Override
       public void onCompletion(MediaPlayer mediaPlayer) {
-        Log.i("Complete", " on repeatAllSongs()");
         goToNextOrPrevSong(NEXT_BTN_ID);
       }
     });
@@ -494,7 +514,7 @@ public class MusicMenuFragment extends Fragment {
     mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
       @Override
       public void onCompletion(MediaPlayer mediaPlayer) {
-        Log.i("Complete", " on repeatCurrentSong()");
+        invalidateLyrics();
         resetAudio(mp, classSelectedSong.getUri());
       }
     });
@@ -537,6 +557,42 @@ public class MusicMenuFragment extends Fragment {
         }
       }
     });
+  }
+
+
+  private void setLyricsListenr() {
+    showLyricsBtn.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        if (!visibleLyrics) {
+          Lyrics lyrics = Repository.getInstance(getActivity()).getSongLyric(classSelectedSong.getId());
+          String lyricsText = "No lyrics added for this song!Tap to add one";
+          if (lyrics != null)
+            lyricsText = lyrics.getSyncedLyrics();
+
+          validateLyrics(lyricsText);
+        } else
+          invalidateLyrics();
+      }
+    });
+  }
+
+
+  private void invalidateLyrics() {
+    visibleLyrics = false;
+    lyricsSubView.setPlayer(null);
+    showLyricsIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_song_lyrics));
+    lyricsScrollView.animate().alpha(0.0f);
+  }
+
+
+  private void validateLyrics(String lyricsText) {
+    visibleLyrics = true;
+    showLyricsIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_song_lyrics_violet));
+    lyricsScrollView.setVisibility(View.VISIBLE);
+    lyricsScrollView.animate().alpha(1.0f);
+    lyricsSubView.setPlayer(mp);
+    lyricsSubView.setSubSource(lyricsText, MediaPlayer.MEDIA_MIMETYPE_TEXT_SUBRIP);
   }
 
 
@@ -598,24 +654,6 @@ public class MusicMenuFragment extends Fragment {
       saveLongPreferences(SHARED_LAST_PLAYING, classLastPlayingSong.getId());
     }// end of updatePlayingSong()
   }// end of MusicViewHolder{}
-
-  private void currentSongUserPlayAction() {
-    final MusicMenuActivity parent = (MusicMenuActivity) getActivity();
-    currentSongUserPanelBtn.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        Intent intent = MusicPlayActivity.newIntent(parent.context, classSelectedSong.getId());
-        startActivity(intent);
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-          @Override
-          public void run() {
-            setMusicPlayFragmentListeners();
-          }
-        }, 100);
-      }
-    });
-  }
 
 
   public class MusicAdapter extends RecyclerView.Adapter<MusicViewHolder> {

@@ -1,11 +1,15 @@
 package com.developer.smmousavi.maktab_hw11_musicplayer.database;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.MediaStore;
 
+import com.developer.smmousavi.maktab_hw11_musicplayer.database.DBSchema.LyricsTable;
+import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.model.Lyrics;
 import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.model.Song;
 
 import java.util.ArrayList;
@@ -15,10 +19,11 @@ public class Repository {
 
   private static Repository instance;
   private Context context;
+  private SQLiteDatabase mDatabase;
 
   private Repository(Context context) {
     this.context = context;
-
+    mDatabase = new MusicPlayerDBHelper(context).getWritableDatabase();
   }
 
 
@@ -26,7 +31,8 @@ public class Repository {
     if (instance != null)
       return instance;
 
-    return new Repository(context);
+    instance = new Repository(context);
+    return instance;
   }
 
 
@@ -35,7 +41,6 @@ public class Repository {
     for (Song song : songs) {
       if (song.getId() == songId)
         return song;
-
     }
     return null;
   }
@@ -52,7 +57,6 @@ public class Repository {
           songs.add(cursor.getSong());
           cursor.moveToNext();
         }
-
       } finally {
         cursor.close();
       }
@@ -69,10 +73,9 @@ public class Repository {
       new String[]{String.valueOf(albumId)},
       null);
 
-    if (cursor.moveToFirst()) {
+    if (cursor.moveToFirst())
       path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
-      // do whatever you need to do
-    }
+
     return path;
   } // end of getSongImgUri()
 
@@ -87,10 +90,49 @@ public class Repository {
       whereArgs,
       null,
       null);
-
     return new SongCursorWrapper(musicCursor);
-
   }// end of getSongQuery()
 
+
+  public void addSongLyrics(Lyrics lyrics) {
+    ContentValues values = getLyricsContentValue(lyrics);
+    mDatabase.insert(LyricsTable.NAME, null, values);
+  }// end of addSongLyrics()
+
+
+  public Lyrics getSongLyric(long songId) {
+    String whereClause = LyricsTable.Cols.SONG_ID + " = " + songId;
+
+    try (LyricsCursorWrapper cursor = lyricsQuery(LyricsTable.NAME, whereClause, null)) {
+      if (cursor.getCount() == 0)
+        return null;
+
+      cursor.moveToFirst();
+      return cursor.getLyrics();
+    }
+  }// end of getSongLyrics()
+
+
+  private LyricsCursorWrapper lyricsQuery(String tableName, String whereClause, String[] whereArgs) {
+    Cursor cursor = mDatabase.query(
+      tableName,
+      null, /* cols == null returns all cols */
+      whereClause,
+      whereArgs,
+      null,
+      null,
+      null);
+
+    return new LyricsCursorWrapper(cursor);
+  } // end of queryAllTasks()
+
+
+  public ContentValues getLyricsContentValue(Lyrics lyrics) {
+    ContentValues values = new ContentValues();
+    values.put(LyricsTable.Cols.SONG_ID, lyrics.getSongId());
+    values.put(LyricsTable.Cols.SYNCED_LYRICS_TEXT, lyrics.getSyncedLyrics());
+    values.put(LyricsTable.Cols.UNSYNCED_LYRICS_TEXT, lyrics.getUnsyncedLyrics());
+    return values;
+  }
 
 }
