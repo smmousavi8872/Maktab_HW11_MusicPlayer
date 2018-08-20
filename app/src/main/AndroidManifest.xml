@@ -22,7 +22,8 @@
     <activity
       android:name=".mvc.controller.activities.MusicPlayActivity"
       android:windowSoftInputMode="adjustPan">
-
+    </activity>
+    <activity android:name=".mvc.controller.activities.AddLyricsActivity">
     </activity>
   </application>
 

@@ -5,6 +5,7 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
@@ -28,6 +29,7 @@ import android.widget.TextView;
 
 import com.developer.smmousavi.maktab_hw11_musicplayer.R;
 import com.developer.smmousavi.maktab_hw11_musicplayer.database.Repository;
+import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.activities.AddLyricsActivity;
 import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.activities.MusicMenuActivity;
 import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.activities.MusicPlayActivity;
 import com.developer.smmousavi.maktab_hw11_musicplayer.mvc.model.Lyrics;
@@ -65,7 +67,6 @@ import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fra
 
 public class MusicMenuFragment extends Fragment {
 
-  public static final String FRAGMENT_TAG = "music_menu_fragment";
   private static final int REQUEST_READ_EXTERNAL_STORAGE = 0;
   public static final String SHARED_NOW_PLAYING = "shared_now_playing";
   public static final String SHARED_LAST_PLAYING = "shared_last_playing";
@@ -78,11 +79,21 @@ public class MusicMenuFragment extends Fragment {
   public static final int REPEATE_STATUS_ONE = 1;
   public static final int REPEATE_STATUS_ALL = 2;
 
+  public static final int LYRICS_STATUS_OFF = 0;
+  public static final int LYRICS_STATUS_UNSYNCED = 1;
+  public static final int LYRICS_STATUS_SYNCED = 2;
+
+  public static final int NIGHT_MODE = 0;
+  public static final int DAY_MODE = 1;
+
   public static MediaPlayer mp;
   public static Song classSelectedSong;
   public static Song classLastPlayingSong;
   public static boolean isShuffled;
+  public static boolean playShuffle;
   public static int repeatStatus;
+  public static int lyricsStatus;
+  public static int themeMode = NIGHT_MODE;
 
   private List<Song> songPlayList;
   private MusicAdapter musicAdapter;
@@ -91,6 +102,10 @@ public class MusicMenuFragment extends Fragment {
 
 
   public RecyclerView recyclerView;
+  public RelativeLayout themeLayout;
+  public ImageView themeChangeMode;
+  public TextView sufflePlayBtn;
+  public TextView playAllBtn;
   public RelativeLayout currentPlayingMusicLayout;
   public Button currentSongUserPanelBtn;
   public ImageView currentPlayingMusicImageView;
@@ -143,7 +158,7 @@ public class MusicMenuFragment extends Fragment {
     }
   }
 
-  private void initializeMediPlayer() {
+  private void initializeMediaPlayer() {
     if (mp == null) {
       long lastPlayedId = loadLongPreferences(SHARED_NOW_PLAYING);
       Song lastPlayedSong = getSongFromPlayList(lastPlayedId);
@@ -156,11 +171,11 @@ public class MusicMenuFragment extends Fragment {
   @Override
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    findParentViews();
     songPlayList = new ArrayList<>();
     songPlayList = getSongListByPermission();
     setRetainInstance(true);
     sortSongList(songPlayList);
-    findParentViews();
     currentPlayingMusicLayout.bringToFront();
     InitializeList();
   }
@@ -173,6 +188,30 @@ public class MusicMenuFragment extends Fragment {
     View view = inflater.inflate(R.layout.fragment_music_menu, container, false);
     recyclerView = view.findViewById(R.id.music_menu_recycler_view);
     recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+    themeLayout = view.findViewById(R.id.middle_layout);
+    themeLayout.bringToFront();
+    themeChangeMode = view.findViewById(R.id.dark_theme);
+    sufflePlayBtn = view.findViewById(R.id.shuffle_play_btn);
+    playAllBtn = view.findViewById(R.id.play_all_btn);
+
+    themeChangeMode.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        switch (themeMode) {
+          case NIGHT_MODE:
+            themeMode = DAY_MODE;
+            themeChangeMode.setBackground(getResources().getDrawable(R.drawable.ic_dark_theme));
+            recyclerView.setBackgroundColor(Color.WHITE);
+            currentPlayingMusicLayout.setBackgroundColor(Color.parseColor("#cccccc"));
+            break;
+          case DAY_MODE:
+            themeMode = NIGHT_MODE;
+            themeChangeMode.setBackground(getResources().getDrawable(R.drawable.ic_bright_theme));
+            recyclerView.setBackgroundColor(getResources().getColor(R.color.dark_background_color));
+            currentPlayingMusicLayout.setBackgroundColor(getResources().getColor(R.color.second_dark_background_color));
+        }
+      }
+    });
     setupAdapter();
 
     return view;
@@ -182,7 +221,7 @@ public class MusicMenuFragment extends Fragment {
   private void InitializeList() {
     initializePlayPauseBtn();
     initializeShuffleBtn();
-    initializeMediPlayer();
+    initializeMediaPlayer();
     initializeRepeatBtn();
   }
 
@@ -267,7 +306,7 @@ public class MusicMenuFragment extends Fragment {
 
 
   public void setupUserMusicPanel() {
-    playOrPauseBtnListener(userPanelPlayBtn, userPanelPlayIcon);
+    setPlayOrPauseBtnListener(userPanelPlayBtn, userPanelPlayIcon);
 
     setOnPrevOrNextListener(userPanelNextBtn, NEXT_BTN_ID);
 
@@ -275,14 +314,14 @@ public class MusicMenuFragment extends Fragment {
   }// end of setupUserMusicPanel()
 
 
-  private void playOrPauseBtnListener(Button button, final ImageView BtnIcon) {
+  private void setPlayOrPauseBtnListener(Button button, final ImageView BtnIcon) {
     button.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
         playOrPause(BtnIcon);
       }
     });
-  }// end of playOrPauseBtnListener()
+  }// end of setPlayOrPauseBtnListener()
 
 
   private void setOnPrevOrNextListener(Button button, final int btnId) {
@@ -300,7 +339,7 @@ public class MusicMenuFragment extends Fragment {
     Song lastPlayedSong = getSongFromPlayList(lastPlayedId);
     int newPos = songPlayList.indexOf(lastPlayedSong);
     Song prevSong = songPlayList.get(newPos);
-    invalidateLyrics();
+    turnOffLyrics();
 
     switch (nextOrPrevId) {
       case PREV_BTN_ID:
@@ -327,10 +366,10 @@ public class MusicMenuFragment extends Fragment {
 
     setCurrentSongText(classSelectedSong);
 
-    playOrPauseBtnListener(userPanelPlayBtn, userPanelPlayIcon);
+    setPlayOrPauseBtnListener(userPanelPlayBtn, userPanelPlayIcon);
 
     if (songPlayPauseBtn != null) {
-      playOrPauseBtnListener(songPlayPauseBtn, songPlayPauseIcon);
+      setPlayOrPauseBtnListener(songPlayPauseBtn, songPlayPauseIcon);
       songPlayPauseIcon.setBackgroundResource(R.drawable.ic_pause_button);
       setPlayingSongInfo(classSelectedSong);
       setSeekBarActions(classSelectedSong);
@@ -452,14 +491,16 @@ public class MusicMenuFragment extends Fragment {
     setOnPrevOrNextListener(songPrevBtn, PREV_BTN_ID);
     setPlayingSongInfo(classSelectedSong);
     setSeekBarActions(classSelectedSong);
-    playOrPauseBtnListener(songPlayPauseBtn, songPlayPauseIcon);
-    shuffleBtnListener();
-    repeatBtnListener();
+    setPlayOrPauseBtnListener(songPlayPauseBtn, songPlayPauseIcon);
+    setShuffleBtnListener();
+    setRepeatBtnListener();
     setLyricsListenr();
+    setAddLyricsImageTapListener(classSelectedSong);
+
   }// end of setMusicPlayFragmentListeners()
 
 
-  private void repeatBtnListener() {
+  private void setRepeatBtnListener() {
     //for first time going to the MusicPlayActivity
     initializeRepeatBtn();
     repeatStatus = (int) loadLongPreferences(SHARED_REPEAT_STATUS);
@@ -514,7 +555,7 @@ public class MusicMenuFragment extends Fragment {
     mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
       @Override
       public void onCompletion(MediaPlayer mediaPlayer) {
-        invalidateLyrics();
+        turnOffLyrics();
         resetAudio(mp, classSelectedSong.getUri());
       }
     });
@@ -531,7 +572,7 @@ public class MusicMenuFragment extends Fragment {
   }
 
 
-  private void shuffleBtnListener() {
+  private void setShuffleBtnListener() {
     if (isShuffled) {
       songShuffleIcon.setBackground(getResources().getDrawable(R.drawable.ic_shuffle_song_purple));
       Collections.shuffle(songPlayList);
@@ -540,7 +581,6 @@ public class MusicMenuFragment extends Fragment {
       sortSongList(songPlayList);
       songShuffleIcon.setBackground(getResources().getDrawable(R.drawable.ic_shuffle_song));
     }
-
     songShuffleBtn.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
@@ -560,39 +600,95 @@ public class MusicMenuFragment extends Fragment {
   }
 
 
+  private void setLyricsBtnClickListenerActions() {
+    Lyrics lyrics = Repository.getInstance(getActivity()).getSongLyric(classSelectedSong.getId());
+
+    switch (lyricsStatus) {
+      case LYRICS_STATUS_OFF:
+        if (lyrics != null && lyrics.getUnsyncedLyrics() != null)
+          showUnsyncedLyrics(lyrics.getUnsyncedLyrics());
+
+        else
+          showUnsyncedLyrics("No lyrics is set for this song!\nTap to add one");
+
+        lyricsStatus = LYRICS_STATUS_UNSYNCED;
+        showLyricsIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_song_lyrics_violet));
+        break;
+      case LYRICS_STATUS_UNSYNCED:
+        if (lyrics != null && lyrics.getSyncedLyrics() != null)
+          showSyncedLyrics(lyrics.getSyncedLyrics());
+
+        else
+          showSyncedLyrics("1\n00:00:00,000 -->59:59:59,599\nNo lyrics is synced for this song!\nTap for syncing");
+
+        lyricsStatus = LYRICS_STATUS_SYNCED;
+        showLyricsIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_song_lyrics_violet_synced));
+        break;
+
+      case LYRICS_STATUS_SYNCED:
+        turnOffLyrics();
+        lyricsStatus = LYRICS_STATUS_OFF;
+        showLyricsIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_song_lyrics));
+        break;
+    }
+  }
+
+
   private void setLyricsListenr() {
     showLyricsBtn.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        if (!visibleLyrics) {
-          Lyrics lyrics = Repository.getInstance(getActivity()).getSongLyric(classSelectedSong.getId());
-          String lyricsText = "No lyrics added for this song!Tap to add one";
-          if (lyrics != null)
-            lyricsText = lyrics.getSyncedLyrics();
+        setLyricsBtnClickListenerActions();
 
-          validateLyrics(lyricsText);
-        } else
-          invalidateLyrics();
       }
     });
   }
 
 
-  private void invalidateLyrics() {
+  private void turnOffLyrics() {
     visibleLyrics = false;
-    lyricsSubView.setPlayer(null);
+    lyricsStatus = LYRICS_STATUS_OFF;
     showLyricsIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_song_lyrics));
+    lyricsSubView.setPlayer(null);
     lyricsScrollView.animate().alpha(0.0f);
   }
 
 
-  private void validateLyrics(String lyricsText) {
+  private void showSyncedLyrics(String lyricsText) {
     visibleLyrics = true;
-    showLyricsIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_song_lyrics_violet));
+    lyricsStatus = LYRICS_STATUS_SYNCED;
+    showLyricsIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_song_lyrics_violet_synced));
     lyricsScrollView.setVisibility(View.VISIBLE);
     lyricsScrollView.animate().alpha(1.0f);
     lyricsSubView.setPlayer(mp);
     lyricsSubView.setSubSource(lyricsText, MediaPlayer.MEDIA_MIMETYPE_TEXT_SUBRIP);
+  }
+
+
+  private void showUnsyncedLyrics(String lyricsText) {
+    visibleLyrics = true;
+    lyricsStatus = LYRICS_STATUS_UNSYNCED;
+    showLyricsIcon.setImageDrawable(getResources().getDrawable(R.drawable.ic_song_lyrics_violet));
+    lyricsScrollView.setVisibility(View.VISIBLE);
+    lyricsScrollView.animate().alpha(1.0f);
+    lyricsSubView.setText(lyricsText);
+  }
+
+
+  private void setAddLyricsImageTapListener(final Song currentSong) {
+    lyricsSubView.setOnClickListener(new View.OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        final Intent intent = AddLyricsActivity.newIntent(getActivity(), currentSong.getId());
+        if (mp.isPlaying()) {
+          pauseAudio(mp, classSelectedSong);
+          songPlayPauseIcon.setBackgroundResource(R.drawable.ic_play_button);
+
+        }
+        turnOffLyrics();
+        startActivity(intent);
+      }
+    });
   }
 
 

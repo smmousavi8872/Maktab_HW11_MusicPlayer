@@ -10,9 +10,6 @@ public class Lyrics {
   private String unsyncedLyrics;
   private List<String> lyricParts;
   private long lineCounter;
-  private long startTimeMillis;
-  private long endTimeMillis;
-  private String lyric;
 
   public Lyrics(long songId) {
     this.songId = songId;
@@ -56,52 +53,32 @@ public class Lyrics {
   }
 
 
-  public long getStartTimeMillis() {
-    return startTimeMillis;
+  public List<String> splitLyricsString() {
+    String[] roughSplits = unsyncedLyrics.split("\\r?\\n");
+    List<String> lyricsSplits = new ArrayList<>();
+    for (String split : roughSplits) {
+      if (!split.trim().equals(""))
+        lyricsSplits.add(split);
+    }
+
+    return lyricsSplits;
   }
 
 
-  public void setStartTimeMillis(long startTimeMillis) {
-    this.startTimeMillis = startTimeMillis;
-  }
+  public void parseLyric(double startTime, double endTime, String lyricText) {
 
 
-  public long getEndTimeMillis() {
-    return endTimeMillis;
-  }
+    int startMilis = (int) (startTime / 1000.0 - Math.floor(startTime / 1000.0)) * 1000;
+    int startSec = (int) (startTime / 1000) % 60;
+    int startMin = (int) ((startTime / (1000 * 60)) % 60);
+    int startHour = (int) ((startTime / (1000 * 60 * 60)) % 24);
 
+    int endMilis = (int) (endTime / 1000.0 - Math.floor(endTime / 1000.0)) * 1000;
+    int endSec = (int) (endTime / 1000) % 60;
+    int endMin = (int) ((endTime / (1000 * 60)) % 60);
+    int endHour = (int) ((endTime / (1000 * 60 * 60)) % 24);
 
-  public void setEndTimeMillis(long endTimeMillis) {
-    this.endTimeMillis = endTimeMillis;
-  }
-
-
-  public String getLyric() {
-    return lyric;
-  }
-
-
-  public void setLyric(String lyric) {
-    this.lyric = lyric;
-  }
-
-
-  public void parseLyric() {
-    double startSeconds = getStartTimeMillis() / 1000.0;
-    double endSeconds = getEndTimeMillis() / 1000.0;
-    String lyricText = getLyric();
-
-    int startHour = (int) startSeconds / 3600;
-    int startMin = (int) startSeconds % 3600 / 60;
-    int startSec = (int) startSeconds % 3600 % 60;
-    int startMilis = (int) (startSeconds - Math.floor(startSeconds)) * 1000;
-
-    int endHour = (int) endSeconds / 3600;
-    int endMin = (int) endSeconds % 3600 / 60;
-    int endSec = (int) endSeconds % 3600 % 60;
-    int endMilis = (int) (endSeconds - Math.floor(endSeconds)) * 1000;
-
-    String lyric = String.format("%d%n%02d:%02d:%02d,%3d -->%02d:%02d:%02d,%3d%n%s%n%n",
+    String lyric = String.format("%d%n%02d:%02d:%02d,%03d -->%02d:%02d:%02d,%03d%n%s%n%n",
       lineCounter, startHour, startMin, startSec, startMilis, endHour, endMin, endSec, endMilis, lyricText);
 
     lyricParts.add(lyric);

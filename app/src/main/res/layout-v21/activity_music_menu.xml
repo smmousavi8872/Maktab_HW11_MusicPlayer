@@ -12,7 +12,7 @@
   <android.support.design.widget.TabLayout
     android:id="@+id/music_menu_tablayout"
     android:layout_width="match_parent"
-    android:layout_height="50dp"
+    android:layout_height="40dp"
     android:layout_marginEnd="15dp"
     android:layout_marginStart="15dp"
     android:backgroundTint="@color/dark_background_color"
@@ -41,6 +41,7 @@
       android:text="Center"/>
 
   </android.support.design.widget.TabLayout>
+
 
   <View
     android:layout_width="match_parent"

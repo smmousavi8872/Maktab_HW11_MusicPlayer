@@ -43,6 +43,7 @@ public class MusicMenuActivity extends AppCompatActivity {
     setContentView(R.layout.activity_music_menu);
     context = this;
 
+
     musicMenuFragments = new ArrayList<>();
     musicMenuTitles = new ArrayList<>();
     viewPager = findViewById(R.id.music_menu_view_pager);

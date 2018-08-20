@@ -31,7 +31,6 @@ import static com.developer.smmousavi.maktab_hw11_musicplayer.mvc.controller.fra
 public class MusicPlayFragment extends Fragment {
 
   public static final String FRAGMENT_TAG = "music_play_fragment_tag";
-  public static final String ARGS_SONG_ID = "args_song_id";
 
   private Button favariotSongBtn;
   private ImageView favariotSongIcon;
@@ -56,15 +55,14 @@ public class MusicPlayFragment extends Fragment {
   public static ImageView songRepeatIcon;
 
 
-  private long songId;
   public static boolean visibleLyrics;
   private Song currentSong;
+  private long songId;
 
 
-  public static MusicPlayFragment newInstance(long songId) {
+  public static MusicPlayFragment newInstance() {
 
     Bundle args = new Bundle();
-    args.putLong(ARGS_SONG_ID, songId);
 
     MusicPlayFragment fragment = new MusicPlayFragment();
     fragment.setArguments(args);
@@ -81,7 +79,7 @@ public class MusicPlayFragment extends Fragment {
   public void onCreate(@Nullable Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setRetainInstance(true);
-    songId = getArguments().getLong(ARGS_SONG_ID);
+    songId = MusicMenuFragment.classSelectedSong.getId();
     currentSong = Repository.getInstance(getActivity()).getSong(songId);
   }
 

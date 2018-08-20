@@ -2,7 +2,8 @@
 <resources>
   <color name="colorPrimary">#3F51B5</color>
   <color name="colorPrimaryDark">#303F9F</color>
-  <color name="colorAccent">#FF4081</color>
+  <color name="colorAccent">#505050</color>
+  <color name="originalColorAccent">#FF4081</color>
   <color name="dark_background_color">#303032</color>
   <color name="second_dark_background_color">#505050</color>
   <color name="general_purple_color">#6253f7</color>

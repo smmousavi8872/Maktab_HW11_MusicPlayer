@@ -10,16 +10,62 @@
   <FrameLayout
     android:id="@+id/uppder_layout"
     android:layout_width="match_parent"
-    android:layout_height="80dp"/>
+    android:layout_height="60dp"/>
 
+  <RelativeLayout
+    android:id="@+id/middle_layout"
+    android:layout_width="match_parent"
+    android:layout_height="40dp"
+    android:layout_below="@id/uppder_layout">
+
+    <ImageView
+      android:id="@+id/dark_theme"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_alignParentEnd="true"
+      android:layout_marginBottom="10dp"
+      android:layout_marginEnd="40dp"
+      android:background="@drawable/ic_bright_theme"/>
+
+    <TextView
+      android:id="@+id/shuffle_play_btn"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="5dp"
+      android:layout_marginStart="40dp"
+      android:background="@drawable/border"
+      android:paddingBottom="5dp"
+      android:paddingEnd="10dp"
+      android:paddingStart="10dp"
+      android:paddingTop="5dp"
+      android:text="Shuffle Play"
+      android:textColor="#eee"
+      android:textSize="13dp"/>
+
+    <TextView
+      android:id="@+id/play_all_btn"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="5dp"
+      android:layout_marginStart="25dp"
+      android:layout_toEndOf="@id/shuffle_play_btn"
+      android:background="@drawable/border"
+      android:paddingBottom="5dp"
+      android:paddingEnd="20dp"
+      android:paddingStart="20dp"
+      android:paddingTop="5dp"
+      android:text="Play All"
+      android:textColor="#eee"
+      android:textSize="13dp"/>
+
+  </RelativeLayout>
 
   <android.support.v7.widget.RecyclerView
     android:id="@+id/music_menu_recycler_view"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_above="@id/lower_layout"
-    android:layout_below="@id/uppder_layout">
-
+    android:layout_below="@id/middle_layout">
 
   </android.support.v7.widget.RecyclerView>
 

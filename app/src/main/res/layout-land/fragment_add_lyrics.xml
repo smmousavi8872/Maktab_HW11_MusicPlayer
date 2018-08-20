@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent">
+
+  <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="15dp"
+    android:layout_marginEnd="50dp"
+    android:layout_marginStart="50dp"
+    android:orientation="vertical"
+    android:padding="20dp"
+    tools:context=".mvc.controller.fragments.AddLyricsFragment">
+
+
+    <android.support.design.widget.TextInputLayout
+      style="@style/Widget.MaterialComponents.TextInputLayout.OutlineBox"
+      android:layout_width="match_parent"
+      android:layout_height="150dp"
+      android:layout_marginBottom="10dp"
+      android:layout_marginEnd="20dp"
+      android:layout_marginStart="20dp"
+      android:hint="Song Lyrics"
+      android:textColorHint="?attr/colorAccent">
+
+
+      <android.support.design.widget.TextInputEditText
+        android:id="@+id/edt_song_lyrics"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="top"
+        android:hint="Enter song lyrics here"
+        android:inputType="textMultiLine"
+        android:text=""
+        android:textColor="?attr/colorAccent"/>
+    </android.support.design.widget.TextInputLayout>
+
+
+    <ImageView
+      android:id="@+id/sync_remove"
+      android:layout_width="20dp"
+      android:layout_height="20dp"
+      android:layout_gravity="center_horizontal"
+      android:background="@drawable/play_button_background"
+      android:src="@drawable/ic_ic_delete_sync"/>
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="60dp"
+      android:padding="5dp">
+
+      <android.support.design.button.MaterialButton
+        android:id="@+id/btn_sync_lyrics"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginEnd="5dp"
+        android:layout_weight="1"
+        android:text="Sync Lyrics"/>
+
+      <android.support.design.button.MaterialButton
+        android:id="@+id/btn_add_lyrics"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="5dp"
+        android:layout_weight="1"
+        android:text="Add Lyrics"/>
+    </LinearLayout>
+
+    <android.support.v7.widget.AppCompatTextView
+      android:id="@+id/txt_synicing_lyric"
+      android:layout_width="match_parent"
+      android:layout_height="60dp"
+      android:enabled="false"
+      android:gravity="center"
+      android:text="Tap START when you are ready"
+      android:textSize="17dp"/>
+
+    <RelativeLayout
+      android:id="@+id/song_seek_bar_layout"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="10dp"
+      android:layout_marginTop="10dp"
+      android:paddingBottom="10dp"
+      android:paddingEnd="10dp"
+      android:paddingStart="10dp">
+
+      <android.support.v7.widget.AppCompatSeekBar
+        android:id="@+id/sync_song_seek_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/seek_bar_background"
+        android:maxHeight="3dp"
+        android:paddingEnd="10dp"
+        android:paddingStart="10dp"
+        android:paddingTop="5dp"
+        android:progressDrawable="@drawable/custom_progress_horizontal"
+        android:thumb="@drawable/custom_progress_thumb"/>
+
+      <TextView
+        android:id="@+id/syncing_music_current_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@id/sync_song_seek_bar"
+        android:layout_below="@id/sync_song_seek_bar"
+        android:layout_marginStart="9dp"
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp"
+        android:textSize="12dp"/>
+
+
+      <ImageView
+        android:id="@+id/sync_revert"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_below="@id/sync_song_seek_bar"
+        android:layout_centerHorizontal="true"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/play_button_background"
+        android:src="@drawable/ic_resync_off"/>
+
+      <TextView
+        android:id="@+id/syncing_music_duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@id/sync_song_seek_bar"
+        android:layout_below="@id/sync_song_seek_bar"
+        android:layout_marginEnd="10dp"
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp"
+        android:text="@string/music_duration"
+        android:textColor="#555"
+        android:textSize="12dp"/>
+    </RelativeLayout>
+
+
+    <android.support.design.button.MaterialButton
+      android:id="@+id/btn_start_sync"
+      android:layout_width="match_parent"
+      android:layout_height="50dp"
+      android:layout_marginEnd="10dp"
+      android:layout_marginStart="10dp"
+      android:padding="5dp"
+      android:enabled="false"
+      android:text="Start Sync"/>
+
+  </LinearLayout>
+</ScrollView>

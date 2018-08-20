@@ -20,7 +20,7 @@ public class MusicPlayActivity extends _SingleFragmentActivity {
   @Override
   public Fragment createFragment() {
     long songId = getIntent().getExtras().getLong(EXTRAS_SONG_ID);
-    return MusicPlayFragment.newInstance(songId);
+    return MusicPlayFragment.newInstance();
   }
 
   @Override

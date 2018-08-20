@@ -100,6 +100,22 @@ public class Repository {
   }// end of addSongLyrics()
 
 
+  public void updateSongLyrics(Lyrics lyrics) {
+    String where = LyricsTable.Cols.SONG_ID + " = " + lyrics.getSongId();
+    ContentValues values = getLyricsContentValue(lyrics);
+    mDatabase.update(LyricsTable.NAME, values, where, null);
+  }
+
+
+  public void removeSongLyrics(Lyrics lyrics) {
+    try {
+      String whereClause = LyricsTable.Cols.SONG_ID + " = " + lyrics.getSongId();
+      mDatabase.delete(LyricsTable.NAME, whereClause, null);
+    } catch (Exception e) {
+      e.getStackTrace();
+    }
+  }// end of removeUndoneTasks()
+
   public Lyrics getSongLyric(long songId) {
     String whereClause = LyricsTable.Cols.SONG_ID + " = " + songId;
 
